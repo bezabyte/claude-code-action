@@ -142,7 +142,7 @@ inputs:
     required: false
     default: "false"
   post_summary:
-    description: "Post or update one pull request comment with Claude's final response after a successful agent-mode run. Set to 'true' only when the workflow prompt and inputs are trusted; this publishes Claude-authored content."
+    description: "Publish Claude's final response as a pull request comment after a successful agent-mode run. A custom GitHub App installation token posts a fresh comment each run. Enable only for trusted workflow prompts and inputs."
     required: false
     default: "false"
   include_fix_links:

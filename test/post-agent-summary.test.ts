@@ -204,14 +204,19 @@ describe("postAgentSummaryComment", () => {
     },
   );
 
-  test("creates a comment when a custom token's author cannot be verified", async () => {
-    const { octokit, calls } = makeOctokit([
-      {
-        id: 11,
-        body: `${SUMMARY_MARKER}\n\nExisting response`,
-        user: { id: 209825114, login: "claude[bot]", type: "Bot" },
-      },
-    ]);
+  test("creates a new summary when an installation token cannot call GET /user", async () => {
+    const { octokit, calls } = makeOctokit(
+      [
+        {
+          id: 11,
+          body: `${SUMMARY_MARKER}\n\nExisting response`,
+          user: { id: 42, login: "custom-app[bot]", type: "Bot" },
+        },
+      ],
+      Object.assign(new Error("Resource not accessible by integration"), {
+        status: 403,
+      }),
+    );
     await postSummary(
       [{ type: "result", subtype: "success", result: "New summary" }],
       octokit,
