@@ -1,0 +1,23 @@
+name: Verify outdated review context
+on:
+  push:
+    branches: [codex-verify-outdated-review-context]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
+        with:
+          bun-version: '1.4.4'
+          no-cache: true
+      - run: bun install --frozen-lockfile
+      - name: Check review metadata in the SDK prompt
+        run: bun run .github/fixtures/verify-outdated-context.ts
+      - run: bun run typecheck
+      - run: bun test
