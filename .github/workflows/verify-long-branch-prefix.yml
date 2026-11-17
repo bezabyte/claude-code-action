@@ -1,0 +1,25 @@
+name: Verify long branch prefixes
+on:
+  push:
+    branches: [codex-verify-long-branch-prefix]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
+        with:
+          bun-version: '1.4.4'
+          no-cache: true
+      - run: bun install --frozen-lockfile
+      - name: Verify separate issue branches through the action entry point
+        run: |
+          FIXTURE_ISSUE=123 bun run .github/fixtures/verify-long-prefix.ts
+          FIXTURE_ISSUE=124 bun run .github/fixtures/verify-long-prefix.ts
+      - run: bun run typecheck
+      - run: bun test
