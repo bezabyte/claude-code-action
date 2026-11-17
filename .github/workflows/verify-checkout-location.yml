@@ -1,0 +1,38 @@
+name: Verify checkout location
+on:
+  push:
+    branches: [codex-verify-checkout-location]
+permissions:
+  contents: read
+jobs:
+  checkout-location:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          path: source
+          persist-credentials: false
+      - name: Change directory in a prior step
+        run: cd source && git rev-parse --show-toplevel
+      - name: Verify checkout is nested and the previous cd did not carry over
+        run: |
+          test "$PWD" = "$GITHUB_WORKSPACE"
+          if git rev-parse --show-toplevel; then exit 1; fi
+          test "$(git -C source rev-parse --show-toplevel)" = "$GITHUB_WORKSPACE/source"
+      - name: Run the released standalone action from the nested checkout
+        id: claude
+        uses: anthropics/claude-code-action/base-action@v1
+        env:
+          CLAUDE_WORKING_DIR: ${{ github.workspace }}/source
+        with:
+          anthropic_api_key: fixture-key
+          prompt: Summarize this repository.
+          path_to_claude_code_executable: ${{ github.workspace }}/source/.github/fixtures/claude-checkout.cjs
+      - name: Verify Claude received a result from the nested checkout
+        env:
+          CONCLUSION: ${{ steps.claude.outputs.conclusion }}
+          EXECUTION_FILE: ${{ steps.claude.outputs.execution_file }}
+        run: |
+          test "$CONCLUSION" = success
+          jq -e 'any(.[]; .type == "result" and .subtype == "success")' "$EXECUTION_FILE"
