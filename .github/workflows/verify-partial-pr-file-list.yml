@@ -1,0 +1,23 @@
+name: Verify partial PR file lists
+on:
+  push:
+    branches: [codex-verify-partial-pr-file-list]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
+        with:
+          bun-version: '1.4.4'
+          no-cache: true
+      - run: bun install --frozen-lockfile
+      - name: Verify the total reaches the SDK prompt
+        run: bun run .github/fixtures/verify-partial-pr-file-list.ts
+      - run: bun run typecheck
+      - run: bun test
