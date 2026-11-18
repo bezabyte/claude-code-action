@@ -1,0 +1,49 @@
+name: Verify refreshed contribution branches
+on:
+  push:
+    branches: [codex-verify-nov18-merges]
+permissions:
+  contents: read
+jobs:
+  verify:
+    name: PR ${{ matrix.pr }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        include:
+          - {"pr": 2078, "sha": "78cecbaf532871b3176760ee78ce04f2e25931af"}
+          - {"pr": 2024, "sha": "422193fd217df24cc121b02457b695f269180798"}
+          - {"pr": 2011, "sha": "bf3181def26f151ba7d45e86a647c700dbbed14a"}
+          - {"pr": 1995, "sha": "ce3b8c7fb4b9dc6afda916c371987140b42dbf46"}
+          - {"pr": 1991, "sha": "3e287cfd05022323ab0acae4656110d258431f73"}
+          - {"pr": 1981, "sha": "dcbc0a0817b2673582eca11c6f0f2af31d0fda6b"}
+          - {"pr": 1976, "sha": "960080067bb95d323b143b107513f3125bdc8098"}
+          - {"pr": 1974, "sha": "0b63905fc35aec8d9b16507ded2632dab09866c9"}
+          - {"pr": 1968, "sha": "c1fa079d07e9d9120800d5140a27cef44fbcc160"}
+    defaults:
+      run:
+        working-directory: action
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          path: harness
+          persist-credentials: false
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          path: action
+          ref: ${{ matrix.sha }}
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
+        with:
+          bun-version: '1.4.4'
+          no-cache: true
+      - run: bun install --frozen-lockfile
+      - run: bun run typecheck
+      - run: bun run format:check
+      - run: bun test
+      - name: Verify the action entry point
+        if: matrix.pr == 1995 || matrix.pr == 2011
+        run: bun run "$GITHUB_WORKSPACE/harness/.github/fixtures/verify-${{ matrix.pr }}.ts"
