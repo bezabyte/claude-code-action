@@ -1,0 +1,42 @@
+name: Verify SDK refresh and session error reports
+on:
+  push:
+    branches: [codex-verify-sdk328-error-reports]
+permissions:
+  contents: read
+jobs:
+  verify:
+    name: PR ${{ matrix.pr }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {"pr": 1981, "sha": "ea3504a337b7cc68048f46c265c42d587cf237cd"}
+          - {"pr": 1974, "sha": "b6e6c1239f837b65b63dc77ec59cd5fe1317fb99"}
+          - {"pr": 2035, "sha": "6bf8d2f976176958ce541cfdc7c8f394740e623a"}
+    defaults:
+      run:
+        working-directory: action
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          path: harness
+          persist-credentials: false
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          path: action
+          ref: ${{ matrix.sha }}
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
+        with:
+          bun-version: '1.4.4'
+          no-cache: true
+      - run: bun install --frozen-lockfile
+      - name: Verify errors reach the action report
+        if: matrix.pr == 2035
+        run: bun run "$GITHUB_WORKSPACE/harness/.github/fixtures/verify-report-errors.ts"
+      - run: bun run typecheck
+      - run: bun run format:check
+      - run: bun test
