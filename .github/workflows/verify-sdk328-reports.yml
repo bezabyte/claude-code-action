@@ -13,9 +13,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - {"pr": 1981, "sha": "ea3504a337b7cc68048f46c265c42d587cf237cd"}
-          - {"pr": 1974, "sha": "b6e6c1239f837b65b63dc77ec59cd5fe1317fb99"}
-          - {"pr": 2035, "sha": "6bf8d2f976176958ce541cfdc7c8f394740e623a"}
+          - {"pr": 2035, "sha": "3ca6a118e8d3af68b28e4032d531e566dff5ab73"}
     defaults:
       run:
         working-directory: action
